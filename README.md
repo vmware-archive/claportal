@@ -48,6 +48,8 @@ For more general information on CLAs, refer to our [FAQ](https://cla.vmware.com/
 
     `docker run -p 9000:9000 claportal:1.0-SNAPSHOT`
 
+7. Log in to localhost:9000/admin/login using credentials claadmin:claadmin
+
 ## Contributing
 
 The CLA Portal project team welcomes contributions from the community. If you wish to contribute code and you have not signed our contributor license agreement (CLA), our bot will update the issue when you open a Pull Request. For any questions about the CLA process, please refer to our [FAQ](https://cla.vmware.com/faq).
