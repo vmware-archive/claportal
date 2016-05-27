@@ -117,7 +117,7 @@ INSERT INTO ClaInputFields (claId, inputFieldId) VALUES (1, 1);
 INSERT INTO ClaInputFields (claId, inputFieldId) VALUES (1, 2);
 INSERT INTO ClaInputFields (claId, inputFieldId) VALUES (1, 3);
 INSERT INTO ClaInputFields (claId, inputFieldId) VALUES (1, 4);
-INSERT INTO Organizations (name) VALUES ('vmware');
+INSERT INTO Organizations (name) VALUES ('testorg');
 
 # --- !Downs
  

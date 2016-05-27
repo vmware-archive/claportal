@@ -40,15 +40,19 @@ For more general information on CLAs, refer to our [FAQ](https://cla.vmware.com/
     app.ccla.expiration=7
     ```
 
-5. Build it
+5. Update organization in conf/evolutions/default/1.sql
+
+    `INSERT INTO Organizations (name) VALUES ('testorg');`
+
+6. Build it
 
     `activator docker:publishLocal`
 
-6. Run it
+7. Run it
 
     `docker run -p 9000:9000 claportal:1.0-SNAPSHOT`
 
-7. Log in to localhost:9000/admin/login using credentials claadmin:claadmin
+8. Log in to localhost:9000/admin/login using credentials claadmin:claadmin
 
 ## Contributing
 
