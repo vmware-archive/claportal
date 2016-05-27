@@ -1,0 +1,59 @@
+body {
+	background: url('/assets/images/bg-wrapper.gif');
+	background-position: top left;
+	background-repeat: repeat-x;
+	margin-top: 10px
+}
+
+.navbar {
+	margin: 0;
+	border-radius: 0;
+}
+
+.navbar-brand {
+	background-image: url('/assets/images/vmware-logo.png');
+	background-repeat: no-repeat;
+	background-position: 30px 14px;
+	background-color: transparent;
+}
+
+.navbar-brand span {
+	color: #c2cd23 !important;
+	font-weight: 200;
+	font-size: 28px;
+	padding-left: 170px;
+	display: inline-block;
+}
+
+.page-header {
+	margin: 25px 0 20px !important;
+}
+
+.form-horizontal .control-label {
+	text-align:left !important; 
+}
+
+.top-margin-sm {
+	margin-top: 16px;
+}
+
+.bottom-padding-sm {
+	padding-bottom: 16px;
+}
+
+.bottom-padding {
+	padding-bottom: 32px;
+}
+
+canvas {
+	border: 1px solid #000000;
+}
+
+.modal-content {
+	overflow: auto;
+	padding-bottom: 16px;
+}
+
+.CodeMirror {
+	height: 300px;
+}

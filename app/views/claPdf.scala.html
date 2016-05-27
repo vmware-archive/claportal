@@ -1,0 +1,35 @@
+@(cla: SignedCla)
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+	</head>
+	<body>
+		<div style="font-family: Open Sans; font-size: 14px;">
+			@Html(cla.getCla().markdownToHtml())
+			<table style="width:100%; text-align: left;">
+				<tr>
+					<th>Project</th>
+					<td>@cla.getProject()</td>
+				</tr>
+				<tr>
+					<th>GitHub Login</th>
+					<td>@cla.getGitHubLogin()</td>
+				</tr>
+				<tr>
+					<th>E-mail</th>
+					<td>@cla.getEmail()</td>
+				</tr>
+				@for(inputField <- cla.getInputFields()) {
+					<tr>
+						<th>@inputField.getInputField().getDisplayName()</th>
+						<td>@inputField.getResponse()</td>
+					</tr>
+				}
+			</table>
+			<p>&nbsp;</p>
+			<img src="@cla.getSignature()" width="675" height="100" />
+		</div>
+	</body>
+</html>

@@ -1,0 +1,45 @@
+@(clas: List[Cla], successMessage: String, errorMessage: String)
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Contributor License Agreement Portal</title>
+		<link rel="stylesheet" media="screen" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+		<link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/cla.css")">
+		<link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.ico")">
+		<script src="//code.jquery.com/jquery-1.11.2.min.js" type="text/javascript"></script>
+		<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js" type="text/javascript"></script>
+	</head>
+	<body>
+		@adminNavbar()
+		<div class="container">
+			<div class="page-header">
+				<h4>Default CLA</h4>
+			</div>
+			@if(successMessage != null) {
+				<div class="alert alert-success">
+					<a href="#" class="close" data-dismiss="alert">&times;</a>
+					@successMessage
+				</div>
+			}
+			@if(errorMessage != null) {
+				<div class="alert alert-danger">
+					<a href="#" class="close" data-dismiss="alert">&times;</a>
+					@errorMessage
+				</div>
+			}
+			<form class="form-inline" action="@routes.AdminController.updateDefault()" method="post" enctype="multipart/form-data">
+				<div class="form-group">
+					<select id="cla" class="form-control" name="cla">
+						@for(cla <- clas) {
+							<option value="@cla.getId()" @if(cla.getIsDefault()) { selected }>@cla.getName() Revision @cla.getRevision()</option>
+						}
+					</select>
+				</div>
+				&nbsp;
+				<button type="submit" class="btn btn-primary">Save</button>
+			</form>
+		</div>
+	</body>
+</html>

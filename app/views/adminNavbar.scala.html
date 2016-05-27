@@ -1,0 +1,28 @@
+<div class="navbar navbar-default navbar-inverse">
+	<div class="container-fluid">
+		<div class="navbar-header navbar-left">
+			<div class="navbar-brand">
+				<span>CLA Portal</span>
+			</div>
+		</div>
+		<div class="collapse navbar-collapse">
+			<ul class="nav navbar-nav">
+				<li class="dropdown">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown">CLA <span class="caret"></span></a>
+					<ul class="dropdown-menu">
+						<li><a href="@routes.AdminController.newCla()">New CLA</a></li>
+						<li><a href="@routes.AdminController.manage()">Edit CLAs</a></li>
+						<li class="divider"></li>
+						<li><a href="@routes.AdminController.inputFields()">Input Fields</a>
+						<li class="divider"></li>
+						<li><a href="@routes.AdminController.defaultCla()">Set Default CLA</a></li>
+					</ul>
+				</li>
+				<li><a href="@routes.AdminController.manageProjects()">Manage Projects</a></li>
+				<li><a href="@routes.AdminController.search()">Review Agreements</a></li>
+				<li><a href="@routes.AdminController.admins()">Administrators</a></li>
+				<li><a href="@routes.AdminController.logout()">Logout</a></li>
+			</ul>
+		</div>
+	</div>
+</div>

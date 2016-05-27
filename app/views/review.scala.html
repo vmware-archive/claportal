@@ -1,0 +1,159 @@
+@(cla: SignedCla, formatter: org.ocpsoft.prettytime.PrettyTime, successMessage: String, errorMessage: String)
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Contributor License Agreement Portal</title>
+		<link rel="stylesheet" media="screen" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+		<link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/cla.css")">
+		<link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.ico")">
+		<script src="//code.jquery.com/jquery-1.11.2.min.js" type="text/javascript"></script>
+		<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js" type="text/javascript"></script>
+	</head>
+	<body>
+		@adminNavbar()
+		<div class="container">
+			<div class="page-header">
+				<h4>Agreement Review</h4>
+			</div>
+			@if(successMessage != null) {
+				<div class="alert alert-success">
+					<a href="#" class="close" data-dismiss="alert">&times;</a>
+					@successMessage
+				</div>
+			}
+			@if(errorMessage != null) {
+				<div class="alert alert-danger">
+					<a href="#" class="close" data-dismiss="alert">&times;</a>
+					@errorMessage
+				</div>
+			}
+			<div id="cla" class="bottom-padding">
+				@Html(cla.getCla().markdownToHtml())
+			</div>
+			<div class="table-responsive">
+				<table class="table table-bordered table-hover table-striped">
+					<tr>
+						<th>CLA</th>
+						<td>@cla.getCla().getName() Revision @cla.getCla().getRevision()</td>
+					</tr>
+					<tr>
+						<th>Project</th>
+						<td>@cla.getProject()</td>
+					</tr>
+					<tr>
+						<th>GitHub Login</th>
+						<td>@cla.getGitHubLogin()</td>
+					</tr>
+					<tr>
+						<th>E-mail</th>
+						<td>@cla.getEmail()</td>
+					</tr>
+					<tr>
+						<th>State</th>
+						<td id="claState">@cla.getState()</td>
+					</tr>
+					@if(cla.getUpdateComment() != null) {
+						<tr>
+							<th>Review Comment</th>
+							<td>@cla.getUpdateComment()</td>
+						</tr>
+					}
+					
+					@if(cla.getRevokeReason() != null) {
+						<tr>
+							<th>Reason CLA Revoked</th>
+							<td>@cla.getRevokeReason()</td>
+						</tr>
+					}
+					@if(cla.getLegalContactEmail() != null) {
+						<tr>
+							<th>Legal contact e-mail</th>
+							<td>@cla.getLegalContactEmail()</td>
+						</tr>
+					}
+					<tr>
+						<th>Created</th>
+						<td>@formatter.format(cla.getCreated())</td>
+					</tr>
+					<tr>
+						<th>Last Updated</th>
+						<td>@formatter.format(cla.getLastUpdated())</td>
+					</tr>
+					@for(inputField <- cla.getInputFields()) {
+						<tr>
+							<th>@inputField.getInputField().getDisplayName()</th>
+							<td>@inputField.getResponse()</td>
+						</tr>
+					}
+				</table>
+			</div>
+			<div class="row">
+				<img src="@cla.getSignature()" />
+			</div>
+			<div class="btn-toolbar bottom-padding">
+				<button id="approveButton" type="button" class="btn btn-success" data-toggle="modal" data-target="#approveModal" @if(cla.getState() != SignedCla.STATE_PENDING) { disabled }>Approve</button>
+				<button id="rejectButton" type="button" class="btn btn-danger" data-toggle="modal" data-target="#rejectModal" @if(cla.getState() != SignedCla.STATE_PENDING) { disabled }>Reject</button>
+			</div>
+			<div id="approveModal" class="modal fade" tabindex="-1" role="dialog">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+							<h4 class="modal-title">Approve Signature?</h4>
+						</div>
+						<div class="modal-body">
+							<p>Are you sure you want to approve the CLA signature? Once approved, the review status can not be changed.</p>
+							<form id="approveForm" class="form-horizontal" action="@routes.AdminController.approve(cla.getUuid())" method="post" enctype="multipart/form-data">
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+							<button type="submit" class="btn btn-success">Approve</button>
+						</div>
+						</form>
+					</div>
+				</div>
+			</div>
+			<div id="rejectModal" class="modal fade" tabindex="-1" role="dialog">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+							<h4 class="modal-title">Reject Signature</h4>
+						</div>
+						<div class="modal-body">
+							<form id="rejectForm" class="form-horizontal" action="@routes.AdminController.reject(cla.getUuid())" method="post" enctype="multipart/form-data">
+								<div id="commentError" class="alert alert-danger collapse">
+									The comment can not be empty
+								</div>
+								<div class="row">
+									<label class="col-sm-12">Comment (This exact message will be displayed to the user)</label>
+								</div>
+								<div class="row bottom-padding-sm">
+									<div class="col-sm-12">
+										<textarea id="comment" class="form-control" name="comment" maxlength="512"></textarea>
+									</div>
+								</div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+							<button type="submit" class="btn btn-danger">Reject</button>
+						</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script type="text/javascript">
+$('#rejectForm').on('submit', function() {
+	var comment = $('#comment').val();
+	if (0 === comment.trim().length) {
+		$('#commentError').show();
+		return false;
+	}
+	return true;
+});
+		</script>
+	</body>
+</html>

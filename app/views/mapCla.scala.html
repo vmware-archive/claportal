@@ -1,0 +1,119 @@
+@(project: String, clas: List[Cla], claName: String, claMaxRevision: Integer, minRevision: Integer, maxRevision: Integer, successMessage: String, errorMessage: String)
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Contributor License Agreement Portal</title>
+		<link rel="stylesheet" media="screen" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+		<link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/cla.css")">
+		<link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.ico")">
+		<script src="//code.jquery.com/jquery-1.11.2.min.js" type="text/javascript"></script>
+		<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js" type="text/javascript"></script>
+	</head>
+	<body>
+		@adminNavbar()
+		<div class="container">
+			<div class="page-header">
+				<h4><a target="_blank" href="https://github.com/@project">@project</a></h4>
+			</div>
+			@if(successMessage != null) {
+				<div class="alert alert-success">
+					<a href="#" class="close" data-dismiss="alert">&times;</a>
+					@successMessage
+				</div>
+			}
+			@if(errorMessage != null) {
+				<div class="alert alert-danger">
+					<a href="#" class="close" data-dismiss="alert">&times;</a>
+					@errorMessage
+				</div>
+			}
+			<form id="claForm" class="form-horizontal" action="@routes.AdminController.updateProjectMapping(project)" method="post" enctype="multipart/form-data">
+				<div class="form-group">
+					<label class="col-sm-3 control-label">CLA</label>
+					<div class="col-sm-9">
+						<select id="cla" class="form-control" name="cla">
+							<option value="Default">Default</option>
+							@for(cla <- clas) {
+								<option value="@cla.getName()" @if(claName == cla.getName()) { selected }>@cla.getName()</option>
+							}
+						</select>
+					</div>
+				</div>
+				<div id="minRevisionGroup" class="form-group">
+					<label class="col-sm-3 control-label">Minimum revision accepted</label>
+					<div class="col-sm-9">
+						<select id="minRevision" class="form-control" name="minRevision">
+							@if(claMaxRevision != null) {
+								@for(i <- 1 to claMaxRevision) {
+									<option value="@i" @if(minRevision != null && minRevision.toInt == i) { selected }>@i</option>
+								}
+							}
+						</select>
+					</div>
+				</div>
+				<div id="maxRevisionGroup" class="form-group">
+					<label class="col-sm-3 control-label">Revision for new signatures</label>
+					<div class="col-sm-9">
+						<select id="maxRevision" class="form-control" name="maxRevision">
+							@if(claMaxRevision != null) {
+								@for(i <- 1 to claMaxRevision) {
+									<option value="@i" @if(maxRevision != null && maxRevision.toInt == i) { selected }>@i</option>
+								}
+							}
+						</select>
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="col-sm-offset-3 col-sm-9">
+						<div class="btn-toolbar bottom-padding">
+							<button type="submit" class="btn btn-primary">Save</button>
+						</div>
+					</div>
+				</div>
+			</form>
+		</div>
+		<script type="text/javascript">
+var revisions = new Object();
+
+@for(cla <- clas) {
+	revisions['@cla.getName()'] = @cla.getRevision();
+}
+
+$('#cla').on('change', function() {
+	var cla = $(this).val();
+	var maxRevisions = revisions[cla];
+	$('#minRevision').empty();
+	$('#maxRevision').empty();
+	for (i = 1; i <= maxRevisions; i++) {
+		$('#minRevision').append($('<option/>', {
+			value: i,
+			text: i
+		}));
+		$('#maxRevision').append($('<option/>', {
+			value: i,
+			text: i
+		}));
+	}
+	$('#minRevision option:last').attr('selected', 'selected');
+	$('#maxRevision option:last').attr('selected', 'selected');
+});
+
+$('#claForm').on('submit', function() {
+	var cla = $('#cla').val();
+	if (cla == 'Default') {
+		return true;
+	}
+	var minRevision = $('#minRevision').val();
+	var maxRevision = $('#maxRevision').val();
+	if (parseInt(minRevision) > parseInt(maxRevision)) {
+		$('#minRevisionGroup').addClass('has-error');
+		$('#maxRevisionGroup').addClass('has-error');
+		return false;
+	}
+	return true;
+});
+		</script>
+	</body>
+</html>

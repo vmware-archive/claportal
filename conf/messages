@@ -1,0 +1,20 @@
+github.status.sign=CLA must be signed before merge can proceed
+github.status.expired=CLA not reviewed in time by contributor''s legal contact
+github.status.review=CLA is signed and under review, merge can proceed
+github.status.reviewexternal=CLA is signed and under review, needs legal approval
+github.status.outdated=CLA outdated, must sign new CLA before merge can proceed
+github.status.approved=CLA signed and approved, merge can proceed
+github.status.rejected=CLA is signed, but rejected by VMware
+github.status.rejectedexternal=CLA is signed, but rejected by contributor''s legal contact
+
+github.issue.sign=@{0}, you must sign our contributor license agreement before your changes are merged. Click {1} to sign the agreement.
+github.issue.expired=@{0}, your company''s legal contact did not review your signed contributor license agreement within the {1} day limit. The merge can not proceed. Click {2} to resign the agreement.
+github.issue.outdated=@{0}, the contributor license agreement we have on file for you is outdated. You must sign an updated copy before your changes are merged. Click {1} to sign the agreement.
+github.issue.approved=@{0}, VMware has approved your signed contributor license agreement.
+github.issue.approvedexternal=@{0}, your company''s legal contact has approved your signed contributor license agreement. It will also be reviewed by VMware, but the merge can proceed.
+github.issue.rejected=@{0}, VMware has rejected your signed contributor license agreement. The merge can not proceed until the agreement has been resigned. Click {1} to resign the agreement.
+github.issue.rejected.merged=@{0}, VMware has rejected your signed contributor license agreement. The change has already been merged, but it will be backed out by the project maintainers if the agreement is not resigned in a timely manner. Click {1} to resign the agreement.
+github.issue.rejectedexternal=@{0}, your company''s legal contact has rejected your signed contributor license agreement. The merge can not proceed until the agreement has been resigned. Click {1} to resign the agreement.
+
+sign.confirmation=We have received your signed contributor license agreement. It will be reviewed by VMware shortly, but the merge can proceed. Please close this window.
+sign.confirmation.ccla=We have received your signed contributor license agreement. An e-mail will be dispatched to the legal contact within your company for approval to contribute to this open source project. If the request is denied or a response is not receieved within {0} days, the pull request will be rejected. If approved, it will then be reviewed by VMware. Please close this window.

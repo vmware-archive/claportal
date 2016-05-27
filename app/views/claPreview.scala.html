@@ -1,0 +1,43 @@
+@(cla: Cla)
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Contributor License Agreement Portal</title>
+		<link rel="stylesheet" media="screen" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+		<link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/cla.css")">
+		<link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.ico")">
+	</head>
+	<body>
+		@navbar()
+		<div class="container">
+			<div class="page-header">
+				<h4>@cla.getName() Revision @cla.getRevision()</h4>
+			</div>
+			<div id="cla" class="bottom-padding">
+				@Html(cla.markdownToHtml())
+			</div>
+			<div class="table-responsive">
+				<table class="table table-bordered table-hover table-striped">
+					<thead>
+						<tr>
+							<th>Input Field</th>
+							<th>Required For Employer</th>
+						</tr>
+					</thead>
+					@for(inputField <- cla.getInputFields()) {
+						<tr>
+							<td>@inputField.getInputField().getDisplayName()</td>
+							@if(inputField.getInputField.getRequiredForEmployer()) {
+								<td>Yes</td>
+							} else {
+								<td>No</td>
+							}
+						</tr>
+					}
+				</table>
+			</div>
+		</div>
+	</body>
+</html>

@@ -1,0 +1,68 @@
+@(successMessage: String, errorMessage: String)
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Contributor License Agreement Portal</title>
+		<link rel="stylesheet" media="screen" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+		<link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/cla.css")">
+		<link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.ico")">
+		<script src="//code.jquery.com/jquery-1.11.2.min.js" type="text/javascript"></script>
+		<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js" type="text/javascript"></script>
+	</head>
+	<body>
+		@adminNavbar()
+		<div class="container">
+			<div class="page-header">
+				<h4>New Input Field</h4>
+			</div>
+			@if(successMessage != null) {
+				<div class="alert alert-success">
+					<a href="#" class="close" data-dismiss="alert">&times;</a>
+					@successMessage
+				</div>
+			}
+			@if(errorMessage != null) {
+				<div class="alert alert-danger">
+					<a href="#" class="close" data-dismiss="alert">&times;</a>
+					@errorMessage
+				</div>
+			}
+			<form id="inputForm" class="form-horizontal" action="@routes.AdminController.addInputField()" method="post" enctype="multipart/form-data">
+				<div id="nameGroup" class="form-group">
+					<label class="col-sm-2 control-label">Display name</label>
+					<div class="col-sm-10">
+						<input id="name" type="text" class="form-control" name="name" maxlength="64">
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="col-sm-offset-2 col-sm-10">
+						<div class="checkbox">
+							<label>
+								<input type="checkbox" name="employerCheck"> Field required when signing on behalf of my employer
+							</label>
+						</div>
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="col-sm-offset-2 col-sm-10">
+						<div class="btn-toolbar bottom-padding">
+							<button type="submit" class="btn btn-primary">Create</button>
+						</div>
+					</div>
+				</div>
+			</form>
+		</div>
+		<script type="text/javascript">
+$('#inputForm').on('submit', function() {
+	var name = $('#name').val();
+	if (0 === name.trim().length) {
+		$('#nameGroup').addClass('has-error');
+		return false;
+	}
+	return true;
+});
+		</script>
+	</body>
+</html>

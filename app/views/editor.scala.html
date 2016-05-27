@@ -1,0 +1,212 @@
+@(clas: List[Cla], name: String, markdown: String, claJson: String, fields: List[InputField], successMessage: String, errorMessage: String)
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Contributor License Agreement Portal</title>
+		<link rel="stylesheet" media="screen" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+		<link rel="stylesheet" media="screen" href="//maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+		<link rel="stylesheet" media="screen" href="//cdnjs.cloudflare.com/ajax/libs/simplemde/1.10.1/simplemde.min.css">
+		<link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/cla.css")">
+		<link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.ico")">
+		<script src="//code.jquery.com/jquery-1.11.2.min.js" type="text/javascript"></script>
+		<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js" type="text/javascript"></script>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/simplemde/1.10.1/simplemde.min.js" type="text/javascript"></script>
+		<script src="@routes.AdminController.javascriptRoutes()" type="text/javascript"></script>
+	</head>
+	<body>
+		@adminNavbar()
+		<div class="container">
+			<div class="page-header">
+				@if(clas != null) {
+					<h4>Edit CLA</h4>
+				} else {
+					<h4>New CLA</h4>
+				}
+			</div>
+			@if(successMessage != null) {
+				<div class="alert alert-success">
+					<a href="#" class="close" data-dismiss="alert">&times;</a>
+					@successMessage
+				</div>
+			}
+			@if(errorMessage != null) {
+				<div class="alert alert-danger">
+					<a href="#" class="close" data-dismiss="alert">&times;</a>
+					@errorMessage
+				</div>
+			}
+			<form id="claForm" class="form-horizontal" action="@routes.AdminController.updateCla()" method="post" enctype="multipart/form-data">
+				<div id="nameError" class="alert alert-danger collapse">
+					A CLA with this name already exists
+				</div>
+				<div id="nameGroup" class="form-group">
+					<label class="col-sm-1 control-label">Name</label>
+					<div class="col-sm-11">
+						<input id="name" type="text" class="form-control" name="name" @if(name != null) { value="@name" readonly } maxlength="64">
+					</div>
+				</div>
+				<div id="revisionGroup" class="form-group">
+					@if(clas != null) {
+						<div class="col-sm-12">
+							<select id="revision" class="form-control">
+								@for(cla <- clas) {
+									<option value="@cla.getRevision()">Revision @cla.getRevision()</option>
+								}
+							</select>
+						</div>
+					} else {
+						<label class="col-sm-12 control-label">Revision 1</label>
+					}
+				</div>
+				<div id="editorError" class="alert alert-danger collapse">
+					The agreement markdown can not be empty
+				</div>
+				<textarea id="markdown" name="markdown">@if(markdown != null) {@markdown}</textarea>
+				<hr />
+				<h4>Required Input Fields</h4>
+				<div id="inputFieldsError" class="alert alert-danger collapse">
+					At least one input field must be added
+				</div>
+				<div class="table-responsive">
+					<table id="claFields" class="table table-bordered table-hover table-striped">
+						<thead>
+							<tr>
+								<th>Display Name</th>
+								<th>Required For Employer</th>
+								<th>Actions</th>
+							</tr>
+						</thead>
+						<tbody>
+						</tbody>
+					</table>
+				</div>
+				<hr />
+				<div class="table-responsive">
+					<table id="inputFields" class="table table-bordered table-hover table-striped">
+						<thead>
+							<tr>
+								<th>Display Name</th>
+								<th>Required For Employer</th>
+								<th>Actions</th>
+							</tr>
+						</thead>
+						<tbody>
+							@for(field <- fields) {
+								<tr>
+									<td>@field.getDisplayName()</td>
+									<td>@if(field.getRequiredForEmployer()) { Yes } else { No }</td>
+									<td><div class="btn-toolbar"><button type="button" class="btn btn-default addButton" data-id="@field.getId()" data-displayName="@field.getDisplayName()" data-requiredForEmployer="@field.getRequiredForEmployer()">Add</button></div></td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+				<div class="btn-toolbar top-margin-sm bottom-padding">
+					<button type="submit" class="btn btn-primary">Create Revision</button>
+				</div>
+			</form>
+		</div>
+		<script type="text/javascript">
+var revisions = new Object();
+@if(claJson != null) {
+	revisions = @Html(claJson);
+}
+var globalIndex = 0;
+
+function populateFields() {
+	var revision = revisions[$('#revision').val()];
+	$('#claFields > tbody').html('');
+	if (revision) {
+		for (var index in revision.inputFields) {
+			addField(revision.inputFields[index].inputField);
+		}
+	}
+}
+
+function addField(field) {
+	var row = '<tr><td>';
+	row += field.displayName;
+	row += '<input type="hidden" name="field' + globalIndex + '" value="' + field.id + '" />';
+	row += '</td><td>';
+	if (field.requiredForEmployer) {
+		row += 'Yes';
+	} else {
+		row += 'No';
+	}
+	row += '</td><td><div class="btn-toolbar"><button type="button" class="btn btn-danger removeButton">Remove</button></div></td></tr>';
+	$('#claFields > tbody:last-child').append(row);
+	globalIndex++;
+}
+
+populateFields();
+
+var simplemde = new SimpleMDE({
+	element: $('#editor')[0],
+	status: false
+});
+
+$('#revision').on('change', function() {
+	var value = $(this).val();
+	var revision = revisions[value];
+	$('#markdown').val(revision.text);
+	simplemde.value(revision.text);
+	populateFields();
+});
+
+$('#claFields').on('click', 'button.removeButton', function() {
+	$(this).closest('tr').remove();
+});
+
+$('#inputFields').on('click', 'button.addButton', function() {
+	var field = {
+		id: $(this).attr("data-id"),
+		displayName: $(this).attr("data-displayName"),
+		requiredForEmployer: $(this).attr("data-requiredForEmployer") == 'true'
+	};
+	addField(field);
+});
+
+$('#claForm').on('submit', function() {
+	var hasError = false;
+	var name = $('#name').val();
+	if (0 === name.trim().length) {
+		$('#nameGroup').addClass('has-error');
+		hasError = true;
+	} else {
+		$('#nameGroup').removeClass('has-error');
+	}
+	@if(clas == null) {
+		jsRoutes.controllers.AdminController.ajaxCheckClaName(name).ajax({
+			success: function (result) {
+				if (result == "true") {
+					$('#nameGroup').addClass('has-error');
+					$('#nameError').show();
+					hasError = true;
+				} else {
+					$('#nameGroup').removeClass('has-error');
+					$('#nameError').hide();
+				}
+			},
+			async: false
+		});
+	}
+	var markdown = $('#markdown').val();
+	if (0 === markdown.trim().length) {
+		$('#editorError').show();
+		hasError = true;
+	} else {
+		$('#editorError').hide();
+	}
+	if ($('#claFields >tbody >tr').length < 1) {
+		$('#inputFieldsError').show();
+		hasError = true;
+	} else {
+		$('#inputFieldsError').hide();
+	}
+	return !hasError;
+});
+		</script>
+	</body>
+</html>

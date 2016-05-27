@@ -1,0 +1,28 @@
+@(url: String, project: String, login: String, email: String)
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+	</head>
+	<body>
+		<div style="font-family: Helvetica, Arial, sans-serif; font-size: 14px; line-height: normal; background-color: rgb(253, 253, 253);">
+			<h4>CLA Requires Review</h4>
+			<p>A contributor license agreement has recently been signed that requires your legal approval. Click <a href="@url">here</a> to review.</p>
+			<table style="text-align: left;">
+				<tr>
+					<th>Project</th>
+					<td>@project</td>
+				</tr>
+				<tr>
+					<th>GitHub Login</th>
+					<td>@login</td>
+				</tr>
+				<tr>
+					<th>E-mail</th>
+					<td>@email</td>
+				</tr>
+			</table>
+		</div>
+	</body>
+</html>
