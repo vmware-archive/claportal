@@ -13,6 +13,8 @@ For more general information on CLAs, refer to our [FAQ](https://cla.vmware.com/
 * Docker
 * ngrok
 
+### Build & Run
+
 1. Start ngrok to tunnel webhook requests from GitHub
 
     `ngrok http 9000`
@@ -42,7 +44,7 @@ For more general information on CLAs, refer to our [FAQ](https://cla.vmware.com/
 
     `activator docker:publishLocal`
 
-6.) Run it
+6. Run it
 
     `docker run -p 9000:9000 claportal:1.0-SNAPSHOT`
 
