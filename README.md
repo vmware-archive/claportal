@@ -8,43 +8,43 @@ For more general information on CLAs, refer to our [FAQ](https://cla.vmware.com/
 
 ### Prerequisites
 
-1. Java 8
-2. Lightbend Activator
-3. Docker
-4. ngrok
+* Java 8
+* Lightbend Activator
+* Docker
+* ngrok
 
 1. Start ngrok to tunnel webhook requests from GitHub
 
-`ngrok http 9000`
+    `ngrok http 9000`
 
 2. Register an OAuth application on GitHub
 3. Create an OAuth access token on GitHub with the following scope
 
-`repo admin:repo_hook read:org`
+    `repo admin:repo_hook read:org`
 
 4. Update settings in conf/application.conf
 
-```
-smtp.host="smtp.test.com"
+    ```
+    smtp.host="smtp.test.com"
 
-app.host="https://<subdomain>.ngrok.io"
-app.internal.host="http://localhost:9000"
-app.github.clientid="<GitHub OAuth client ID>"
-app.github.clientsecret="<GitHub OAuth client secret>"
-app.github.oauthtoken="<GitHub OAuth access token>"
-app.notification.email="claadmin@test.com"
-app.noreply.email="noreply@test.com"
-app.admin.email="claadmin@test.com"
-app.ccla.expiration=7
-```
+    app.host="https://<subdomain>.ngrok.io"
+    app.internal.host="http://localhost:9000"
+    app.github.clientid="<GitHub OAuth client ID>"
+    app.github.clientsecret="<GitHub OAuth client secret>"
+    app.github.oauthtoken="<GitHub OAuth access token>"
+    app.notification.email="claadmin@test.com"
+    app.noreply.email="noreply@test.com"
+    app.admin.email="claadmin@test.com"
+    app.ccla.expiration=7
+    ```
 
 5. Build it
 
-`activator docker:publishLocal`
+    `activator docker:publishLocal`
 
 6.) Run it
 
-`docker run -p 9000:9000 claportal:1.0-SNAPSHOT`
+    `docker run -p 9000:9000 claportal:1.0-SNAPSHOT`
 
 ## Contributing
 
