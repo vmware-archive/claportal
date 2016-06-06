@@ -108,7 +108,7 @@ CREATE TABLE `Reviews` (
 
 
 INSERT INTO Admins (admin, super) VALUES ('claadmin', 1);
-INSERT INTO Clas (name, text, author, revision, isDefault, created) VALUES ('Sample', 'Sample CLA', 'fincht', 1, 1, '2016-01-01 00:00:00');
+INSERT INTO Clas (name, text, author, revision, isDefault, created) VALUES ('Sample', 'Sample CLA', 'claadmin', 1, 1, '2016-01-01 00:00:00');
 INSERT INTO InputFields (displayName, requiredForEmployer) VALUES ('Full legal name', 0);
 INSERT INTO InputFields (displayName, requiredForEmployer) VALUES ('Address', 0);
 INSERT INTO InputFields (displayName, requiredForEmployer) VALUES ('Job title', 1);
