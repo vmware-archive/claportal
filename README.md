@@ -44,21 +44,25 @@ For more general information on CLAs, refer to our [FAQ](https://cla.vmware.com/
 
     `INSERT INTO Organizations (name) VALUES ('testorg');`
 
-6. Build it
+6. Generate a new application secret
+
+    `activator playUpdateSecret`
+
+7. Build it
 
     `activator docker:publishLocal`
 
-7. Run it
+8. Run it
 
     `docker run -p 9000:9000 claportal:1.0-SNAPSHOT`
 
-8. Log in to localhost:9000/admin/login using credentials claadmin:claadmin
+9. Log in to localhost:9000/admin/login using credentials claadmin:claadmin
 
-9. Select "Manage Projects" to load all repositories from your organization
+10. Select "Manage Projects" to load all repositories from your organization
 
-10. Select a repository, click Edit, and set the CLA to Sample. When you save, this will install the web hook to the repository on GitHub for pull request events
+11. Select a repository, click Edit, and set the CLA to Sample. When you save, this will install the web hook to the repository on GitHub for pull request events
 
-11. Submit a pull request to your repository (Note: organization members do not sign the CLA, so submit a pull request using an account that is not a member of the organization)
+12. Submit a pull request to your repository (Note: organization members do not sign the CLA, so submit a pull request using an account that is not a member of the organization)
 
 ## Contributing
 
