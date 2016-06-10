@@ -54,6 +54,12 @@ For more general information on CLAs, refer to our [FAQ](https://cla.vmware.com/
 
 8. Log in to localhost:9000/admin/login using credentials claadmin:claadmin
 
+9. Select "Manage Projects" to load all repositories from your organization
+
+10. Select a repository, click Edit, and set the CLA to Sample. When you save, this will install the web hook to the repository on GitHub for pull request events
+
+11. Submit a pull request to your repository (Note: organization members do not sign the CLA, so submit a pull request using an account that is not a member of the organization)
+
 ## Contributing
 
 The CLA Portal project team welcomes contributions from the community. If you wish to contribute code and you have not signed our contributor license agreement (CLA), our bot will update the issue when you open a Pull Request. For any questions about the CLA process, please refer to our [FAQ](https://cla.vmware.com/faq).
