@@ -96,7 +96,7 @@ public class AdminController extends Controller {
             return ok(login.render(next, "Invalid credentials"));
         }
         session().clear();
-        session().put("user", user);
+        session().put("admin", user);
         if (next == null) {
             return redirect(controllers.routes.AdminController.search());
         } else {
@@ -167,7 +167,7 @@ public class AdminController extends Controller {
         Cla newCla = new Cla();
         newCla.setName(name);
         newCla.setText(markdown);
-        newCla.setAuthor(session().get("user"));
+        newCla.setAuthor(session().get("admin"));
         newCla.setRevision(1);
         newCla.setIsDefault(false);
         newCla.setCreated(new Date());
@@ -485,7 +485,7 @@ public class AdminController extends Controller {
     private static void logReviewEvent(SignedCla cla) {
         Review review = new Review();
         review.setSignedCla(cla);
-        review.setReviewer(session().get("user"));
+        review.setReviewer(session().get("admin"));
         review.setState(cla.getState());
         review.setCreated(new Date());
         Ebean.save(review);

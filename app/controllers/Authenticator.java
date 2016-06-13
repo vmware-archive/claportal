@@ -29,7 +29,7 @@ public class Authenticator extends Security.Authenticator {
 
     @Override
     public String getUsername(Context context) {
-        return context.session().get("user");
+        return context.session().get("admin");
     }
 
     @Override
