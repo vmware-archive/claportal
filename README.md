@@ -2,6 +2,8 @@
 
 This tool enables a workflow for developers to digitally sign a contributor license agreement (CLA) for your projects on GitHub. When a developer opens a pull request, they will get prompted to sign the agreement if they have not already. An administrator interface is provided for CLA authoring, CLA-to-project mapping, and agreement reviews.
 
+The portal also supports developer certificate of origin (DCO). When enabled on a repository, all commits within a pull request will be checked for a signature in the following format: `Signed-off-by: John Doe <john.doe@example.com>` that matches the commit author.
+
 For more general information on CLAs, refer to our [FAQ](https://cla.vmware.com/faq)
 
 ## Try it out
@@ -63,6 +65,18 @@ For more general information on CLAs, refer to our [FAQ](https://cla.vmware.com/
 11. Select a repository, click Edit, and set the CLA to Sample (Note: When you save, this will install the web hook to the repository on GitHub for pull request events.)
 
 12. Submit a pull request to your repository (Note: Organization members do not sign the CLA, so submit a pull request using an account that is not a member of the organization.)
+
+### Developer Certificate of Origin (DCO)
+
+1. Log in to localhost:9000/admin/login using credentials claadmin:claadmin (Note: These credentials are hard-coded in Authenticator.java. If you decide to use this in production, you should update the authenticate method for your identity provider.)
+
+2. Select "Edit DCO" to create the initial DCO agreement revision
+
+3. Select "Manage Projects" to load all repositories from your organization
+
+4. Select a repository, click Edit, and check "Use DCO" (Note: When you save, this will install the web hook to the repository on GitHub for pull request events.)
+
+When enabled on a repository, all commits within a pull request will be checked for a signature in the following format: `Signed-off-by: John Doe <john.doe@example.com>` that matches the commit author.
 
 ## Contributing
 
