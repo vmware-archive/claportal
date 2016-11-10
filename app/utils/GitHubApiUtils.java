@@ -87,6 +87,13 @@ public class GitHubApiUtils {
         Logger.info("Label status [" + wsResponse.getStatus() + "]: " + wsResponse.getBody());
     }
 
+    public static void removeIssueLabel(String labelUrl) {
+        String header = getAuthHeader(Play.application().configuration().getString("app.github.oauthtoken"));
+        Promise<WSResponse> response = WS.url(labelUrl).setHeader("Authorization", header).delete();
+        WSResponse wsResponse = response.get(30000);
+        Logger.info("Delete label status [" + wsResponse.getStatus() + "]: " + wsResponse.getBody());
+    }
+
     public static String formatLink(String name, String url) {
         return String.format("[%s](%s)", name, url);
     }

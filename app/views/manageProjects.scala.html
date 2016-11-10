@@ -1,4 +1,4 @@
-@(projects: Map[String, ProjectCla])
+@(projects: Map[String, Object])
 
 <!DOCTYPE html>
 <html>
@@ -28,6 +28,7 @@
 							<th>CLA</th>
 							<th>Minimum Revision Accepted</th>
 							<th>Revision For New Signatures</th>
+							<th>DCO</th>
 							<th>Actions</th>
 						</tr>
 					</thead>
@@ -36,11 +37,20 @@
 							<tr>
 								<td><a target="_blank" href="https://github.com/@key">@key</a></td>
 								@if(value != null) {
-									<td>@value.getMinCla().getName()</td>
-									<td>@value.getMinCla().getRevision()</td>
-									<td>@value.getMaxCla().getRevision()</td>
+									@if(value.isInstanceOf[ProjectCla]) {
+										<td>@value.asInstanceOf[ProjectCla].getMinCla().getName()</td>
+										<td>@value.asInstanceOf[ProjectCla].getMinCla().getRevision()</td>
+										<td>@value.asInstanceOf[ProjectCla].getMaxCla().getRevision()</td>
+										<td>-</td>
+									} else {
+										<td>-</td>
+										<td>-</td>
+										<td>-</td>
+										<td>Yes</td>
+									}
 								} else {
 									<td>Default</td>
+									<td>-</td>
 									<td>-</td>
 									<td>-</td>
 								}

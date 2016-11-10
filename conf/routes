@@ -16,6 +16,8 @@ GET      /admin/inputs                      controllers.AdminController.inputFie
 GET      /admin/input/new                   controllers.AdminController.newInputField()
 POST     /admin/input/add                   controllers.AdminController.addInputField()
 GET      /admin/clas/manage                 controllers.AdminController.manage()
+GET      /admin/dco/edit                    controllers.AdminController.editDco()
+POST     /admin/dco/update                  controllers.AdminController.updateDco()
 GET      /admin/projects/manage             controllers.AdminController.manageProjects()
 GET      /admin/projects/:project           controllers.AdminController.manageProject(project: String)
 POST     /admin/projects/:project/update    controllers.AdminController.updateProjectMapping(project: String)
@@ -36,6 +38,7 @@ GET      /admin/api/cla/:name/:revision/preview   controllers.ApiController.prev
 POST     /admin/api/cla/:name/:revision/setup     controllers.ApiController.setupCla(name: String, revision: Int, org: String, repo: String)
 POST     /admin/api/projects/:org/:repo/import    controllers.ApiController.importPullRequests(org: String, repo: String, claName: String, revision: Int)
 
+GET      /dco                               controllers.ClaController.dco()
 GET      /cla/:uuid                         controllers.ClaController.index(uuid: String)
 GET      /cla/:uuid/github/callback         controllers.ClaController.authCallback(uuid: String, code: String)
 POST     /cla/:uuid/sign                    controllers.ClaController.signCla(uuid: String)

@@ -76,19 +76,25 @@ public class ApiController extends Controller {
         if (cla == null) {
             return notFound("The contributor license agreement request does not exist");
         }
-        ProjectCla projectCla = ProjectCla.find.setForUpdate(true).where().eq("project", org + "/" + repo).findUnique();
-        if (name.equals("Default")) {
-            if (projectCla != null) {
-                Ebean.delete(projectCla);
+        Ebean.beginTransaction();
+        try {
+            ProjectCla projectCla = ProjectCla.find.setForUpdate(true).where().eq("project", org + "/" + repo).findUnique();
+            if (name.equals("Default")) {
+                if (projectCla != null) {
+                    Ebean.delete(projectCla);
+                }
+            } else {
+                if (projectCla == null) {
+                    projectCla = new ProjectCla();
+                    projectCla.setProject(org + "/" + repo);
+                }
+                projectCla.setMinCla(cla);
+                projectCla.setMaxCla(cla);
+                Ebean.save(projectCla);
             }
-        } else {
-            if (projectCla == null) {
-                projectCla = new ProjectCla();
-                projectCla.setProject(org + "/" + repo);
-            }
-            projectCla.setMinCla(cla);
-            projectCla.setMaxCla(cla);
-            Ebean.save(projectCla);
+            Ebean.commitTransaction();
+        } finally {
+            Ebean.endTransaction();
         }
         AdminController.installWebhook(org, repo);
         return ok();
@@ -134,7 +140,7 @@ public class ApiController extends Controller {
             ProjectCla projectCla = new ProjectCla();
             projectCla.setProject(org + "/" + repo);
             projectCla.setMaxCla(cla);
-            ClaController.handlePullRequest(signedCla, projectCla, uid, login, pullRequestUrl, statusUrl, issueUrl, repoUrl);
+            ClaController.handleCla(signedCla, projectCla, uid, login, pullRequestUrl, statusUrl, issueUrl, repoUrl);
         }
         return ok();
     }

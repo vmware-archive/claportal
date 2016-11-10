@@ -1,0 +1,25 @@
+@(dco: Dco)
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Contributor License Agreement Portal</title>
+		<link rel="stylesheet" media="screen" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+		<link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/cla.css")">
+		<link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.ico")">
+	</head>
+	<body>
+		@navbar()
+		<div class="container">
+			<div class="page-header">
+				<h4>Developer Certificate of Origin</h4>
+			</div>
+			<div id="dco" class="">
+				@Html(dco.markdownToHtml())
+			</div>
+			<hr />
+			<p>To acknowledge the Developer Certificate of Origin (DCO), sign your commits by adding <code>Signed-off-by: John Doe &lt;john.doe@@email.com&gt;</code> to the last line of each Git commit message. The e-mail address used to sign must match the e-mail address of the Git author. If you set your <code>user.name</code> and <code>user.email</code> git config values, you can sign your commit automatically with <code>git commit -s</code>.</p>
+		</div>
+	</body>
+</html>

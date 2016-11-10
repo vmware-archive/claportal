@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.UUID;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -36,8 +37,10 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import it.innove.play.pdf.PdfGenerator;
 import models.Cla;
 import models.ClaInputField;
+import models.Dco;
 import models.Organization;
 import models.ProjectCla;
+import models.ProjectDco;
 import models.SignedCla;
 import models.SignedClaGitHubPullRequest;
 import models.SignedClaInputField;
@@ -53,17 +56,20 @@ import play.libs.ws.WSResponse;
 import play.mvc.Controller;
 import play.mvc.Http.MultipartFormData;
 import play.mvc.Result;
+import utils.GitHubApiUtils;
 import views.html.claEmail;
 import views.html.claPdf;
+import views.html.dcoPreview;
 import views.html.externalReviewEmail;
 import views.html.index;
 import views.html.message;
 import views.html.reviewEmail;
-import utils.GitHubApiUtils;
 
 public class ClaController extends Controller {
     public static final String CLA_REJECTED_LABEL = "cla-rejected";
     public static final String CLA_NOT_REQUIRED_LABEL = "cla-not-required";
+    public static final String DCO_REQUIRED = "dco-required";
+    public static final String DCO_NOT_REQUIRED_LABEL = "dco-not-required";
 
     private static SignedCla getSignedCla(String uuid) throws ResultException {
         SignedCla cla = SignedCla.find.where().eq("uuid", uuid).findUnique();
@@ -95,6 +101,14 @@ public class ClaController extends Controller {
         builder.append(email);
         builder.append(Play.application().configuration().getString("application.secret"));
         return DigestUtils.sha256Hex(builder.toString());
+    }
+
+    public static Result dco() {
+        Dco dco = Dco.find.orderBy("revision DESC").setMaxRows(1).findUnique();
+        if (dco == null) {
+            return notFound(message.render("The developer certificate of origin request does not exist"));
+        }
+        return ok(dcoPreview.render(dco));
     }
 
     public static Result index(String uuid) {
@@ -308,6 +322,61 @@ public class ClaController extends Controller {
         return ok(message.render(confirmation));
     }
 
+    private static void handleDco(String login, String pullRequestUrl, String issueUrl, String repoUrl) {
+        String dcoUrl = GitHubApiUtils.formatLink("here",
+                Play.application().configuration().getString("app.host") + controllers.routes.ClaController.dco());
+        String comment = Messages.get("github.issue.dco", login, dcoUrl);
+        String url = pullRequestUrl + "/commits";
+        String header = GitHubApiUtils.getAuthHeader(Play.application().configuration().getString("app.github.oauthtoken"));
+        Promise<WSResponse> response = WS.url(url).setHeader("Authorization", header).get();
+        WSResponse wsResponse = response.get(30000);
+        JsonNode json = wsResponse.asJson();
+        if (json.isArray()) {
+            ArrayNode array = (ArrayNode) json;
+            Iterator<JsonNode> iterator = array.iterator();
+            boolean addDcoReminder = false;
+            while (iterator.hasNext()) {
+                JsonNode node = iterator.next();
+                JsonNode commitNode = node.get("commit");
+                String message = commitNode.get("message").asText().trim();
+                String email = commitNode.get("author").get("email").asText();
+                boolean foundEmail = false;
+                Scanner scanner = new Scanner(message);
+                try {
+                    while (scanner.hasNextLine()) {
+                        String line = scanner.nextLine().toLowerCase();
+                        if (line.startsWith("signed-off-by:")) {
+                            int emailStart = line.lastIndexOf("<");
+                            int emailEnd = line.lastIndexOf(">");
+                            if (emailStart > 0 && emailEnd > 0) {
+                                String commitEmail = line.substring(emailStart + 1, emailEnd);
+                                if (email.equals(commitEmail)) {
+                                    foundEmail = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                } finally {
+                    scanner.close();
+                }
+                if (!foundEmail) {
+                    addDcoReminder = true;
+                    break;
+                }
+            }
+            if (addDcoReminder) {
+                GitHubApiUtils.addIssueComment(comment, issueUrl + "/comments");
+                GitHubApiUtils.addIssueLabel(repoUrl, DCO_REQUIRED, "fc2929");
+                GitHubApiUtils.attachIssueLabel(issueUrl + "/labels", DCO_REQUIRED);
+                return;
+            } else {
+                String labelUrl = issueUrl + "/labels/" + DCO_REQUIRED;
+                GitHubApiUtils.removeIssueLabel(labelUrl);
+            }
+        }
+    }
+
     private static boolean isInRange(SignedCla signedCla, ProjectCla projectCla) {
         int revision = signedCla.getCla().getRevision();
         int minRevision = projectCla.getMinCla().getRevision();
@@ -324,7 +393,7 @@ public class ClaController extends Controller {
         return false;
     }
 
-    public static void handlePullRequest(SignedCla cla, ProjectCla projectCla, String uid, String login, String pullRequestUrl,
+    public static void handleCla(SignedCla cla, ProjectCla projectCla, String uid, String login, String pullRequestUrl,
             String statusUrl, String issueUrl, String repoUrl) {
         String state = null;
         String description = null;
@@ -406,7 +475,7 @@ public class ClaController extends Controller {
             return ok();
         }
         String action = json.get("action").asText();
-        if (action.equals("opened")) {
+        if (action.equals("opened") || action.equals("synchronize")) {
             JsonNode pullRequestNode = json.get("pull_request");
             JsonNode userNode = pullRequestNode.get("user");
             JsonNode repositoryNode = json.get("repository");
@@ -419,7 +488,7 @@ public class ClaController extends Controller {
             String repo = repositoryNode.get("name").asText();
             String repoUrl = repositoryNode.get("url").asText();
             String owner = ownerNode.get("login").asText();
-            Logger.info("Pull request " + pullRequestUrl + " opened");
+            Logger.info("Pull request " + pullRequestUrl + " opened/synchronized");
 
             /* Reject hook callbacks from other organizations */
             boolean foundOrg = false;
@@ -434,38 +503,43 @@ public class ClaController extends Controller {
                 return ok();
             }
 
-            /* Org members do not need to sign the CLA */
-            if (GitHubApiUtils.isOrgMember(owner, login)) {
-                GitHubApiUtils.addIssueLabel(repoUrl, CLA_NOT_REQUIRED_LABEL, "159818");
-                GitHubApiUtils.attachIssueLabel(issueUrl + "/labels", CLA_NOT_REQUIRED_LABEL);
-                return ok();
-            }
+            boolean hasDco = ProjectDco.find.where().eq("project", owner + "/" + repo).findUnique() != null;
+            if (hasDco) {
+                handleDco(login, pullRequestUrl, issueUrl, repoUrl);
+            } else if (action.equals("opened")) {
+                /* Org members do not need to sign the CLA */
+                if (GitHubApiUtils.isOrgMember(owner, login)) {
+                    GitHubApiUtils.addIssueLabel(repoUrl, CLA_NOT_REQUIRED_LABEL, "159818");
+                    GitHubApiUtils.attachIssueLabel(issueUrl + "/labels", CLA_NOT_REQUIRED_LABEL);
+                    return ok();
+                }
 
-            SignedCla cla = null;
-            ProjectCla projectCla = ProjectCla.find.where().eq("project", owner + "/" + repo).findUnique();
-            if (projectCla == null) {
-                Cla defaultCla = Cla.find.where().eq("isDefault", true).findUnique();
-                projectCla = new ProjectCla();
-                projectCla.setMinCla(defaultCla);
-                projectCla.setMaxCla(defaultCla);
-                projectCla.setProject(owner + "/" + repo);
-                cla = SignedCla.find.setForUpdate(true).where().eq("claId", defaultCla.getId()).eq("gitHubUid", uid)
-                        .ne("state", SignedCla.STATE_REVOKED).findUnique();
-            } else {
-                List<Cla> clas = Cla.find.where().eq("name", projectCla.getMinCla().getName()).findList();
-                for (Cla c : clas) {
-                    cla = SignedCla.find.setForUpdate(true).where().eq("claId", c.getId()).eq("gitHubUid", uid)
+                SignedCla cla = null;
+                ProjectCla projectCla = ProjectCla.find.where().eq("project", owner + "/" + repo).findUnique();
+                if (projectCla == null) {
+                    Cla defaultCla = Cla.find.where().eq("isDefault", true).findUnique();
+                    projectCla = new ProjectCla();
+                    projectCla.setMinCla(defaultCla);
+                    projectCla.setMaxCla(defaultCla);
+                    projectCla.setProject(owner + "/" + repo);
+                    cla = SignedCla.find.setForUpdate(true).where().eq("claId", defaultCla.getId()).eq("gitHubUid", uid)
                             .ne("state", SignedCla.STATE_REVOKED).findUnique();
-                    if (cla != null) {
-                        if (isInRange(cla, projectCla)) {
-                            break;
-                        } else {
-                            cla = null;
+                } else {
+                    List<Cla> clas = Cla.find.where().eq("name", projectCla.getMinCla().getName()).findList();
+                    for (Cla c : clas) {
+                        cla = SignedCla.find.setForUpdate(true).where().eq("claId", c.getId()).eq("gitHubUid", uid)
+                                .ne("state", SignedCla.STATE_REVOKED).findUnique();
+                        if (cla != null) {
+                            if (isInRange(cla, projectCla)) {
+                                break;
+                            } else {
+                                cla = null;
+                            }
                         }
                     }
                 }
+                handleCla(cla, projectCla, uid, login, pullRequestUrl, statusUrl, issueUrl, repoUrl);
             }
-            handlePullRequest(cla, projectCla, uid, login, pullRequestUrl, statusUrl, issueUrl, repoUrl);
         }
         return ok();
     }

@@ -77,6 +77,21 @@ CREATE TABLE `SignedClaGitHubPullRequests` (
    FOREIGN KEY (`signedClaId`) REFERENCES `SignedClas` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=UTF8;
 
+CREATE TABLE `Dcos` (
+   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+   `text` TEXT NOT NULL,
+   `author` VARCHAR(64) NOT NULL,
+   `revision` INT UNSIGNED NOT NULL,
+   `created` DATETIME NOT NULL,
+   PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=UTF8;
+
+CREATE TABLE `ProjectDcos` (
+   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+   `project` VARCHAR(512) NOT NULL,
+   PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=UTF8;
+
 CREATE TABLE `Admins` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `admin` VARCHAR(64) NOT NULL,
@@ -106,7 +121,6 @@ CREATE TABLE `Reviews` (
    FOREIGN KEY (`signedClaId`) REFERENCES `SignedClas` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=UTF8;
 
-
 INSERT INTO Admins (admin, super) VALUES ('claadmin', 1);
 INSERT INTO Clas (name, text, author, revision, isDefault, created) VALUES ('Sample', 'Sample CLA', 'claadmin', 1, 1, '2016-01-01 00:00:00');
 INSERT INTO InputFields (displayName, requiredForEmployer) VALUES ('Full legal name', 0);
@@ -125,6 +139,8 @@ DROP TABLE Reviews;
 DROP TABLE Organizations;
 DROP TABLE InstalledWebhooks;
 DROP TABLE Admins;
+DROP TABLE ProjectDcos;
+DROP TABLE Dcos;
 DROP TABLE SignedClaGitHubPullRequests;
 DROP TABLE SignedClaInputFields;
 DROP TABLE SignedClas;

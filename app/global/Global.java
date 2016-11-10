@@ -21,6 +21,7 @@ import java.util.List;
 
 import it.innove.play.pdf.PdfGenerator;
 import models.InstalledWebhook;
+import models.ProjectDco;
 import models.SignedClaGitHubPullRequest;
 import play.Application;
 import play.GlobalSettings;
@@ -47,7 +48,19 @@ public class Global extends GlobalSettings {
          */
         List<String> missedPrs = new ArrayList<String>();
         List<InstalledWebhook> webhooks = InstalledWebhook.find.findList();
+        List<ProjectDco> projectDcos = ProjectDco.find.findList();
         for (InstalledWebhook webhook : webhooks) {
+            boolean skip = false;
+            for (ProjectDco projectDco : projectDcos) {
+                if (webhook.getProject().equals(projectDco.getProject())) {
+                    skip = true;
+                    break;
+                }
+            }
+            if (skip) {
+                continue;
+            }
+
             String[] parts = webhook.getProject().split("/");
             if (parts.length != 2) {
                 continue;

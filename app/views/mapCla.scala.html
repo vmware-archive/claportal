@@ -1,4 +1,4 @@
-@(project: String, clas: List[Cla], claName: String, claMaxRevision: Integer, minRevision: Integer, maxRevision: Integer, successMessage: String, errorMessage: String)
+@(project: String, useDco: Boolean, clas: List[Cla], claName: String, claMaxRevision: Integer, minRevision: Integer, maxRevision: Integer, successMessage: String, errorMessage: String)
 
 <!DOCTYPE html>
 <html>
@@ -30,6 +30,12 @@
 				</div>
 			}
 			<form id="claForm" class="form-horizontal" action="@routes.AdminController.updateProjectMapping(project)" method="post" enctype="multipart/form-data">
+				<div class="checkbox">
+					<label>
+						<input id="dcoCheck" type="checkbox" name="dcoCheck" @if(useDco) { checked }> Use DCO
+					</label>
+				</div>
+				<hr />
 				<div class="form-group">
 					<label class="col-sm-3 control-label">CLA</label>
 					<div class="col-sm-9">
@@ -81,6 +87,18 @@ var revisions = new Object();
 	revisions['@cla.getName()'] = @cla.getRevision();
 }
 
+@if(useDco) {
+	$('#cla').attr('disabled', true);
+	$('#minRevision').attr('disabled', true);
+	$('#maxRevision').attr('disabled', true);
+}
+
+$('#dcoCheck').change(function() {
+	$('#cla').attr('disabled', $(this).is(':checked'));
+	$('#minRevision').attr('disabled', $(this).is(':checked'));
+	$('#maxRevision').attr('disabled', $(this).is(':checked'));
+});
+
 $('#cla').on('change', function() {
 	var cla = $(this).val();
 	var maxRevisions = revisions[cla];
@@ -101,6 +119,9 @@ $('#cla').on('change', function() {
 });
 
 $('#claForm').on('submit', function() {
+	if ($('#dcoCheck').is(':checked')) {
+		return true;
+	}
 	var cla = $('#cla').val();
 	if (cla == 'Default') {
 		return true;

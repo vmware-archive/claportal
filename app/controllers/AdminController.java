@@ -36,14 +36,15 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import models.Admin;
 import models.Cla;
+import models.Dco;
 import models.InputField;
 import models.InstalledWebhook;
 import models.Organization;
 import models.ProjectCla;
+import models.ProjectDco;
 import models.Review;
 import models.SignedCla;
 import models.SignedClaGitHubPullRequest;
-import play.Logger;
 import play.Play;
 import play.Routes;
 import play.i18n.Messages;
@@ -57,6 +58,7 @@ import play.mvc.Result;
 import play.mvc.Security;
 import utils.GitHubApiUtils;
 import views.html.admins;
+import views.html.dcoEditor;
 import views.html.defaultCla;
 import views.html.editor;
 import views.html.inputFields;
@@ -171,13 +173,12 @@ public class AdminController extends Controller {
         newCla.setRevision(1);
         newCla.setIsDefault(false);
         newCla.setCreated(new Date());
-        List<Cla> clas = Cla.find.where().eq("name", name).orderBy("revision DESC").findList();
-        if (!clas.isEmpty()) {
-            Cla prevCla = clas.iterator().next();
-            newCla.setRevision(prevCla.getRevision() + 1);
-        }
         Ebean.beginTransaction();
         try {
+            Cla cla = Cla.find.setForUpdate(true).where().eq("name", name).orderBy("revision DESC").setMaxRows(1).findUnique();
+            if (cla != null) {
+                newCla.setRevision(cla.getRevision() + 1);
+            }
             Ebean.save(newCla);
             for (Integer key : ids.keySet()) {
                 Long id = ids.get(key);
@@ -191,7 +192,7 @@ public class AdminController extends Controller {
         } finally {
             Ebean.endTransaction();
         }
-        clas = Cla.find.where().eq("name", name).orderBy("revision DESC").findList();
+        List<Cla> clas = Cla.find.where().eq("name", name).orderBy("revision DESC").findList();
         ObjectNode json = Json.newObject();
         for (Cla cla : clas) {
             json.put(Integer.toString(cla.getRevision()), Json.toJson(cla));
@@ -293,6 +294,61 @@ public class AdminController extends Controller {
         return ok(manage.render(clas, new PrettyTime()));
     }
 
+    @Security.Authenticated(Authenticator.class)
+    public static Result editDco() {
+        List<Dco> dcos = Dco.find.orderBy("revision DESC").findList();
+        String markdown = null;
+        String dcoJson = null;
+        if (!dcos.isEmpty()) {
+            markdown = dcos.iterator().next().getText();
+            ObjectNode json = Json.newObject();
+            for (Dco dco : dcos) {
+                json.put(Integer.toString(dco.getRevision()), Json.toJson(dco));
+            }
+            dcoJson = json.toString();
+        } else {
+            dcos = null;
+        }
+        return ok(dcoEditor.render(dcos, markdown, dcoJson, null, null));
+    }
+
+    @Security.Authenticated(Authenticator.class)
+    public static Result updateDco() {
+        MultipartFormData data = request().body().asMultipartFormData();
+        Map<String, String[]> values = data.asFormUrlEncoded();
+        String markdown = null;
+        try {
+            markdown = ClaController.getField("markdown", values, 0);
+        } catch (IllegalStateException e) {
+            return ok(dcoEditor.render(null, null, null, null, e.getMessage()));
+        }
+        Dco newDco = new Dco();
+        newDco.setText(markdown);
+        newDco.setAuthor(session().get("admin"));
+        newDco.setRevision(1);
+        newDco.setCreated(new Date());
+
+        Ebean.beginTransaction();
+        try {
+            Dco dco = Dco.find.setForUpdate(true).orderBy("revision DESC").setMaxRows(1).findUnique();
+            if (dco != null) {
+                newDco.setRevision(dco.getRevision() + 1);
+            }
+            Ebean.save(newDco);
+            Ebean.commitTransaction();
+        } finally {
+            Ebean.endTransaction();
+        }
+
+        List<Dco> dcos = Dco.find.orderBy("revision DESC").findList();
+        ObjectNode json = Json.newObject();
+        for (Dco dco : dcos) {
+            json.put(Integer.toString(dco.getRevision()), Json.toJson(dco));
+        }
+        String message = "Revision " + newDco.getRevision() + " has been created";
+        return ok(dcoEditor.render(dcos, markdown, json.toString(), message, null));
+    }
+
     private static Map<String, String> parseLinkHeader(String header) {
         Map<String, String> pages = new HashMap<String, String>();
         String[] links = header.split(",");
@@ -344,7 +400,7 @@ public class AdminController extends Controller {
 
     @Security.Authenticated(Authenticator.class)
     public static Result manageProjects() {
-        Map<String, ProjectCla> projects = new LinkedHashMap<String, ProjectCla>();
+        Map<String, Object> projects = new LinkedHashMap<String, Object>();
         List<String> gitHubProjects = getGitHubProjects();
         for (String project : gitHubProjects) {
             projects.put(project, null);
@@ -352,6 +408,10 @@ public class AdminController extends Controller {
         List<ProjectCla> projectClas = ProjectCla.find.findList();
         for (ProjectCla cla : projectClas) {
             projects.put(cla.getProject(), cla);
+        }
+        List<ProjectDco> projectDcos = ProjectDco.find.findList();
+        for (ProjectDco dco : projectDcos) {
+            projects.put(dco.getProject(), dco);
         }
         return ok(manageProjects.render(projects));
     }
@@ -373,8 +433,9 @@ public class AdminController extends Controller {
             minRevision = projectCla.getMinCla().getRevision();
             maxRevision = projectCla.getMaxCla().getRevision();
         }
-        return ok(
-                mapCla.render(project, clas, claName, claMaxRevision, minRevision, maxRevision, successMessage, errorMessage));
+        ProjectDco projectDco = ProjectDco.find.where().eq("project", project).findUnique();
+        return ok(mapCla.render(project, projectDco != null, clas, claName, claMaxRevision, minRevision, maxRevision,
+                successMessage, errorMessage));
     }
 
     @Security.Authenticated(Authenticator.class)
@@ -402,9 +463,26 @@ public class AdminController extends Controller {
         if (parts.length != 2) {
             return doManageProject(project, null, "Project format must be org/repo");
         }
-        ProjectCla projectCla = ProjectCla.find.setForUpdate(true).where().eq("project", project).findUnique();
         MultipartFormData data = request().body().asMultipartFormData();
         Map<String, String[]> values = data.asFormUrlEncoded();
+
+        ProjectCla projectCla = ProjectCla.find.setForUpdate(true).where().eq("project", project).findUnique();
+        ProjectDco projectDco = ProjectDco.find.where().eq("project", project).findUnique();
+
+        boolean useDco = values.containsKey("dcoCheck");
+        if (useDco) {
+            if (projectCla != null) {
+                Ebean.delete(projectCla);
+            }
+            if (projectDco == null) {
+                projectDco = new ProjectDco();
+                projectDco.setProject(project);
+            }
+            Ebean.save(projectDco);
+            installWebhook(parts[0], parts[1]);
+            return doManageProject(project, "The project mapping has been updated", null);
+        }
+
         String cla = null;
         try {
             cla = ClaController.getField("cla", values, 0);
@@ -414,6 +492,9 @@ public class AdminController extends Controller {
         if (cla.equals("Default")) {
             if (projectCla != null) {
                 Ebean.delete(projectCla);
+            }
+            if (projectDco != null) {
+                Ebean.delete(projectDco);
             }
             installWebhook(parts[0], parts[1]);
             return doManageProject(project, "The project mapping has been updated", null);
@@ -443,6 +524,9 @@ public class AdminController extends Controller {
         projectCla.setMinCla(minCla);
         projectCla.setMaxCla(maxCla);
         Ebean.save(projectCla);
+        if (projectDco != null) {
+            Ebean.delete(projectDco);
+        }
         installWebhook(parts[0], parts[1]);
         return doManageProject(project, "The project mapping has been updated", null);
     }
@@ -501,31 +585,6 @@ public class AdminController extends Controller {
         }
     }
 
-    private static void removeClaRejectedLabel(String labelUrl) {
-        boolean hasLabel = false;
-        String header = GitHubApiUtils.getAuthHeader(Play.application().configuration().getString("app.github.oauthtoken"));
-        Promise<WSResponse> response = WS.url(labelUrl).setHeader("Authorization", header).get();
-        WSResponse wsResponse = response.get(30000);
-        JsonNode json = wsResponse.asJson();
-        if (json.isArray()) {
-            ArrayNode array = (ArrayNode) json;
-            Iterator<JsonNode> iterator = array.iterator();
-            while (iterator.hasNext()) {
-                JsonNode node = iterator.next();
-                if (ClaController.CLA_REJECTED_LABEL.equals(node.get("name").asText())) {
-                    hasLabel = true;
-                    break;
-                }
-            }
-        }
-        if (hasLabel) {
-            labelUrl += "/" + ClaController.CLA_REJECTED_LABEL;
-            response = WS.url(labelUrl).setHeader("Authorization", header).delete();
-            wsResponse = response.get(30000);
-            Logger.info("Label status [" + wsResponse.getStatus() + "]: " + wsResponse.getBody());
-        }
-    }
-
     @Security.Authenticated(Authenticator.class)
     @Transactional
     public static Result approve(String uuid) {
@@ -545,7 +604,8 @@ public class AdminController extends Controller {
         for (SignedClaGitHubPullRequest pullRequest : cla.getPullRequests()) {
             GitHubApiUtils.updateGitHubStatus(cla.getUuid(), "success", status, pullRequest.getGitHubStatusUrl());
             GitHubApiUtils.addIssueComment(comment, pullRequest.getGitHubIssueUrl() + "/comments");
-            removeClaRejectedLabel(pullRequest.getGitHubIssueUrl() + "/labels");
+            String labelUrl = pullRequest.getGitHubIssueUrl() + "/labels/" + ClaController.CLA_REJECTED_LABEL;
+            GitHubApiUtils.removeIssueLabel(labelUrl);
         }
         flash("success", "The " + cla.getProject() + " project CLA for " + cla.getGitHubLogin() + " has been reviewed");
         return getNextSignedCla();
