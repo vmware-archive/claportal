@@ -335,9 +335,11 @@ public class ClaController extends Controller {
             ArrayNode array = (ArrayNode) json;
             Iterator<JsonNode> iterator = array.iterator();
             boolean addDcoReminder = false;
+            StringBuilder builder = new StringBuilder();
             while (iterator.hasNext()) {
                 JsonNode node = iterator.next();
                 JsonNode commitNode = node.get("commit");
+                String sha = commitNode.get("sha").asText();
                 String message = commitNode.get("message").asText().trim();
                 String email = commitNode.get("author").get("email").asText();
                 boolean foundEmail = false;
@@ -361,11 +363,16 @@ public class ClaController extends Controller {
                     scanner.close();
                 }
                 if (!foundEmail) {
+                    builder.append("- Commit ");
+                    builder.append(sha);
+                    builder.append(" must be signed by ");
+                    builder.append(email);
+                    builder.append("\n");
                     addDcoReminder = true;
-                    break;
                 }
             }
             if (addDcoReminder) {
+                comment += "\n\n" + builder.toString();
                 GitHubApiUtils.addIssueComment(comment, issueUrl + "/comments");
                 GitHubApiUtils.addIssueLabel(repoUrl, DCO_REQUIRED, "fc2929");
                 GitHubApiUtils.attachIssueLabel(issueUrl + "/labels", DCO_REQUIRED);
