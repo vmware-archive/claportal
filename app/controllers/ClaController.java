@@ -339,7 +339,7 @@ public class ClaController extends Controller {
             while (iterator.hasNext()) {
                 JsonNode node = iterator.next();
                 JsonNode commitNode = node.get("commit");
-                String sha = commitNode.get("sha").asText();
+                String sha = node.get("sha").asText();
                 String message = commitNode.get("message").asText().trim();
                 String email = commitNode.get("author").get("email").asText();
                 boolean foundEmail = false;
