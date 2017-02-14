@@ -514,8 +514,9 @@ public class ClaController extends Controller {
             if (hasDco) {
                 handleDco(login, pullRequestUrl, issueUrl, repoUrl);
             } else if (action.equals("opened")) {
-                /* Org members do not need to sign the CLA */
-                if (GitHubApiUtils.isOrgMember(owner, login)) {
+                /* Collaborators do not need to sign the CLA */
+                Set<String> collaborators = GitHubApiUtils.getCollaborators(owner, repo);
+                if (collaborators.contains(login)) {
                     GitHubApiUtils.addIssueLabel(repoUrl, CLA_NOT_REQUIRED_LABEL, "159818");
                     GitHubApiUtils.attachIssueLabel(issueUrl + "/labels", CLA_NOT_REQUIRED_LABEL);
                     return ok();

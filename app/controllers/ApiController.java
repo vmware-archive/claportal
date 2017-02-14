@@ -116,6 +116,7 @@ public class ApiController extends Controller {
         }
         String header = GitHubApiUtils.getAuthHeader(Play.application().configuration().getString("app.github.oauthtoken"));
         String url = "https://api.github.com/repos/%s/%s/pulls/%s";
+        Set<String> collaborators = GitHubApiUtils.getCollaborators(org, repo);
         for (String pr : prs) {
             String apiUrl = String.format(url, org, repo, pr);
             Promise<WSResponse> response = WS.url(apiUrl).setHeader("Authorization", header).get();
@@ -129,8 +130,8 @@ public class ApiController extends Controller {
             String statusUrl = json.get("statuses_url").asText();
             String issueUrl = json.get("issue_url").asText();
             String repoUrl = repoNode.get("url").asText();
-            /* Organization members do not need to sign a CLA */
-            if (GitHubApiUtils.isOrgMember(org, login)) {
+            /* Collaborators do not need to sign a CLA */
+            if (collaborators.contains(login)) {
                 GitHubApiUtils.addIssueLabel(repoUrl, ClaController.CLA_NOT_REQUIRED_LABEL, "159818");
                 GitHubApiUtils.attachIssueLabel(issueUrl + "/labels", ClaController.CLA_NOT_REQUIRED_LABEL);
                 continue;

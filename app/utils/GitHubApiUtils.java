@@ -60,16 +60,6 @@ public class GitHubApiUtils {
         Logger.info("Comment status [" + wsResponse.getStatus() + "]: " + wsResponse.getBody());
     }
 
-    public static boolean isOrgMember(String org, String login) {
-        String url = "https://api.github.com/orgs/%s/memberships/%s";
-        url = String.format(url, org, login);
-        String header = getAuthHeader(Play.application().configuration().getString("app.github.oauthtoken"));
-        Promise<WSResponse> response = WS.url(url).setHeader("Authorization", header).get();
-        WSResponse wsResponse = response.get(30000);
-        Logger.info("Is org member status [" + wsResponse.getStatus() + "]: " + wsResponse.getBody());
-        return wsResponse.getStatus() == 200;
-    }
-
     public static void addIssueLabel(String repoUrl, String label, String color) {
         String labelsUrl = repoUrl + "/labels";
         String json = "{ \"name\": \"" + label + "\", \"color\": \"" + color + "\" }";
@@ -137,5 +127,52 @@ public class GitHubApiUtils {
             }
         }
         return prs;
+    }
+
+    private static Map<String, String> parseLinkHeader(String header) {
+        Map<String, String> pages = new HashMap<String, String>();
+        String[] links = header.split(",");
+        for (String link : links) {
+            String[] segments = link.split(";");
+            if (segments.length != 2) {
+                continue;
+            }
+            String url = segments[0].trim().replace("<", "").replace(">", "");
+            String rel = segments[1].trim().replace("rel=", "").replace("\"", "");
+            pages.put(rel, url);
+        }
+        return pages;
+    }
+
+    public static Set<String> getCollaborators(String org, String repo) {
+        Set<String> collaborators = new HashSet<String>();
+        String url = "https://api.github.com/repos/%s/%s/collaborators?per_page=100";
+        url = String.format(url, org, repo);
+        String header = GitHubApiUtils.getAuthHeader(Play.application().configuration().getString("app.github.oauthtoken"));
+        boolean hasNext = true;
+        while (hasNext) {
+            Promise<WSResponse> response = WS.url(url).setHeader("Authorization", header).get();
+            WSResponse wsResponse = response.get(30000);
+            JsonNode json = wsResponse.asJson();
+            if (json.isArray()) {
+                ArrayNode array = (ArrayNode) json;
+                Iterator<JsonNode> iterator = array.iterator();
+                while (iterator.hasNext()) {
+                    JsonNode node = iterator.next();
+                    String login = node.get("login").asText();
+                    collaborators.add(login);
+                }
+            }
+            hasNext = false;
+            String link = wsResponse.getHeader("Link");
+            if (link != null) {
+                Map<String, String> pages = parseLinkHeader(link);
+                if (pages.containsKey("next")) {
+                    url = pages.get("next");
+                    hasNext = true;
+                }
+            }
+        }
+        return collaborators;
     }
 }
