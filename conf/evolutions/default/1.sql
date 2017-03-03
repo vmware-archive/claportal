@@ -121,6 +121,19 @@ CREATE TABLE `Reviews` (
    FOREIGN KEY (`signedClaId`) REFERENCES `SignedClas` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=UTF8;
 
+ALTER TABLE `Admins` ADD INDEX `ix_Admins_admin` (`admin`);
+ALTER TABLE `Clas` ADD INDEX `ix_Clas_name` (`name`);
+ALTER TABLE `Clas` ADD INDEX `ix_Clas_revision` (`revision`);
+ALTER TABLE `Clas` ADD INDEX `ix_Clas_isDefault` (`isDefault`);
+ALTER TABLE `InputFields` ADD INDEX `ix_InputFields_displayName` (`displayName`);
+ALTER TABLE `InstalledWebhooks` ADD INDEX `ix_InstalledWebhooks_project` (`project`);
+ALTER TABLE `ProjectClas` ADD INDEX `ix_ProjectClas_project` (`project`);
+ALTER TABLE `ProjectDcos` ADD INDEX `ix_ProjectDcos_project` (`project`);
+ALTER TABLE `SignedClaGitHubPullRequests` ADD INDEX `ix_SignedClaGitHubPullRequests_gitHubPullRequestUrl` (`gitHubPullRequestUrl`);
+ALTER TABLE `SignedClas` ADD INDEX `ix_SignedClas_uuid` (`uuid`);
+ALTER TABLE `SignedClas` ADD INDEX `ix_SignedClas_state` (`state`);
+ALTER TABLE `SignedClas` ADD INDEX `ix_SignedClas_gitHubUid` (`gitHubUid`);
+
 INSERT INTO Admins (admin, super) VALUES ('claadmin', 1);
 INSERT INTO Clas (name, text, author, revision, isDefault, created) VALUES ('Sample', 'Sample CLA', 'claadmin', 1, 1, '2016-01-01 00:00:00');
 INSERT INTO InputFields (displayName, requiredForEmployer) VALUES ('Full legal name', 0);
