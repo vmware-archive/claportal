@@ -25,6 +25,10 @@ import com.avaje.ebean.annotation.Transactional;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import it.innove.play.pdf.PdfGenerator;
+import models.Cla;
+import models.Dco;
+import models.ProjectCla;
+import models.ProjectDco;
 import models.SignedCla;
 import play.Play;
 import play.libs.F.Promise;
@@ -37,6 +41,8 @@ import play.mvc.Result;
 import play.mvc.Security;
 import utils.GitHubApiUtils;
 import views.html.claPdf;
+import views.html.claPreview;
+import views.html.dcoPreview;
 import views.html.devCla;
 import views.html.devClas;
 import views.html.devLogin;
@@ -134,6 +140,26 @@ public class DevController extends Controller {
             flash("error", "The contributor license agreement does not exist");
         }
         return redirect(controllers.routes.DevController.viewClas());
+    }
+
+    public static Result previewRedirect(String org, String repo) {
+        if (ProjectDco.find.where().eq("project", org + "/" + repo).findUnique() != null) {
+            Dco dco = Dco.find.orderBy("revision DESC").setMaxRows(1).findUnique();
+            if (dco == null) {
+                return notFound(message.render("The developer certificate of origin request does not exist"));
+            }
+            return ok(dcoPreview.render(dco));
+        }
+        ProjectCla cla = ProjectCla.find.where().eq("project", org + "/" + repo).findUnique();
+        if (cla != null) {
+            Cla maxCla = cla.getMaxCla();
+            return ok(claPreview.render(maxCla));
+        }
+        Cla defaultCla = Cla.find.where().eq("isDefault", true).findUnique();
+        if (defaultCla == null) {
+            return notFound(message.render("The contributor license agreement request does not exist"));
+        }
+        return ok(claPreview.render(defaultCla));
     }
 
     public static Result logout() {

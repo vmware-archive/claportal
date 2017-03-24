@@ -6,6 +6,7 @@ github.status.outdated=CLA outdated, must sign new CLA before merge can proceed
 github.status.approved=CLA signed and approved, merge can proceed
 github.status.rejected=CLA is signed, but rejected by VMware
 github.status.rejectedexternal=CLA is signed, but rejected by contributor''s legal contact
+github.status.notrequired=CLA is not required for this contributor
 
 github.issue.dco=@{0}, you must sign every commit in this pull request acknowledging our Developer Certificate of Origin before your changes are merged. This can be done by adding `Signed-off-by: John Doe <john.doe@email.org>` to the last line of each Git commit message. The e-mail address used to sign must match the e-mail address of the Git author. Click {1} to view the Developer Certificate of Origin agreement.
 github.issue.sign=@{0}, you must sign our contributor license agreement before your changes are merged. Click {1} to sign the agreement.

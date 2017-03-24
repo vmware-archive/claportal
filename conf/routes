@@ -54,6 +54,7 @@ GET      /view/clas                         controllers.DevController.viewClas()
 GET      /view/:uuid                        controllers.DevController.viewCla(uuid: String)
 GET      /view/:uuid/pdf                    controllers.DevController.viewPdf(uuid: String)
 POST     /cla/:uuid/revoke                  controllers.DevController.revokeCla(uuid: String)
+GET      /preview/:org/:repo                controllers.DevController.previewRedirect(org: String, repo: String)
 GET      /logout                            controllers.DevController.logout()
 
 # Map static resources from the /public folder to the /assets URL path

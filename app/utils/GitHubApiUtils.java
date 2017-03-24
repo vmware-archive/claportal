@@ -55,6 +55,19 @@ public class GitHubApiUtils {
         Logger.info("Update pull request status [" + wsResponse.getStatus() + "]: " + wsResponse.getBody());
     }
 
+    public static void updateGitHubStatus(String state, String description, String statusUrl) {
+        ObjectNode statusNode = Json.newObject();
+        statusNode = statusNode.put("context", "vmwclabot");
+        statusNode = statusNode.put("state", state);
+        statusNode = statusNode.put("description", description);
+        String targetUrl = Play.application().configuration().getString("app.host");
+        statusNode = statusNode.put("target_url", targetUrl);
+        String header = getAuthHeader(Play.application().configuration().getString("app.github.oauthtoken"));
+        Promise<WSResponse> response = WS.url(statusUrl).setHeader("Authorization", header).post(statusNode);
+        WSResponse wsResponse = response.get(30000);
+        Logger.info("Update pull request status [" + wsResponse.getStatus() + "]: " + wsResponse.getBody());
+    }
+
     public static void addIssueComment(String comment, String commentUrl) {
         ObjectNode statusNode = Json.newObject();
         statusNode = statusNode.put("body", comment);
