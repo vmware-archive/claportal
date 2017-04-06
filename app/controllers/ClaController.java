@@ -520,8 +520,6 @@ public class ClaController extends Controller {
                 if (collaborators.contains(login)) {
                     GitHubApiUtils.addIssueLabel(repoUrl, CLA_NOT_REQUIRED_LABEL, "159818");
                     GitHubApiUtils.attachIssueLabel(issueUrl + "/labels", CLA_NOT_REQUIRED_LABEL);
-                    String status = Messages.get("github.status.notrequired");
-                    GitHubApiUtils.updateGitHubStatus("success", status, statusUrl);
                     return ok();
                 }
 
