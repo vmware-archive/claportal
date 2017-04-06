@@ -1,6 +1,6 @@
 # CLA Portal
 
-This tool enables a workflow for developers to digitally sign a contributor license agreement (CLA) for your projects on GitHub. When a developer opens a pull request, they will get prompted to sign the agreement if they have not already. An administrator interface is provided for CLA authoring, CLA-to-project mapping, and agreement reviews.
+This tool enables a workflow for developers to digitally sign a contributor license agreement (CLA) for your projects on GitHub. When a developer opens a pull request, they will be prompted to sign the agreement if they have not already. An administrator interface is provided for CLA authoring, CLA-to-project mapping, and agreement reviews.
 
 The portal also supports developer certificate of origin (DCO). When enabled on a repository, all commits within a pull request will be checked for a signature in the following format: `Signed-off-by: John Doe <john.doe@example.com>` that matches the commit author.
 
